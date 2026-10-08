@@ -1,36 +1,31 @@
 # TuneIt
 
-TuneIt is a local music player built with Expo. It can scan audio exposed by an Android or iOS media library, or import audio files you choose. Playback uses the on-device file; TuneIt does not include downloads or a remote streaming catalog in this version.
+TuneIt is organized as a small monorepo with independent frontend and backend services:
 
-## Run the app
+- `frontend/` — Expo music player. Deploy this directory to Vercel.
+- `backend/` — FastAPI account and metadata sync API. Deploy this directory to Render.
 
-From this folder in PowerShell:
+The app's local music playback works offline. The backend is optional and stores account details and music metadata; it never uploads audio files or local file paths.
+
+## Run locally
+
+Install and start the frontend:
 
 ```powershell
+Set-Location frontend
 npm install
 npm run dev
 ```
 
-Expo will show a QR code and available launch options. Use the Expo Go app for the development preview. Native media scanning and background playback require a native Android or iOS app; on web, use **Add audio files**. If you prefer the explicit Expo commands, use `npm run android`, `npm run ios`, or `npm run web`.
+To run the backend, follow [backend/README.md](backend/README.md). For local sync, copy `frontend/.env.example` to `frontend/.env` and set `EXPO_PUBLIC_API_URL` to the backend address reachable by your device. Restart Expo after changing it.
 
-## Use the local library
+## Deploy
 
-Open **Local Music** and allow audio access when prompted, then choose **Scan device**. Or select **Add audio files** to import audio into TuneIt's private app storage. Select a song to play; the library, likes, playlists, and recently played list are saved on this device. In a web preview, reselect imported files after reloading the page because browsers do not keep those local file handles.
+Deploy the two services from this repository using these independent root directories:
 
-## Optional account sync backend
+| Host | Root directory | Build / start |
+| --- | --- | --- |
+| Vercel | `frontend` | `npx expo export --platform web`; output `dist` |
+| Render Web Service | `backend` | `pip install -r requirements.txt`; start with `uvicorn main:app --host 0.0.0.0 --port $PORT` |
 
-The FastAPI backend syncs account details and song metadata, favorites, and playlists. It does not upload audio files or local file paths. Follow [backend/README.md](backend/README.md) to run it, then copy `.env.example` to `.env` and set `EXPO_PUBLIC_API_URL` to an address reachable by the app. Restart Expo after changing `.env`.
-
-Use `http://127.0.0.1:8000` when running the app in a desktop browser on the same computer, `http://10.0.2.2:8000` from the Android emulator, or the computer's LAN IP from a physical phone on the same Wi-Fi.
-
-## Main routes
-
-- `/` — home
-- `/search` — search local tracks
-- `/library` — device library and playlists
-- `/playlists` — playlists
-- `/favorites` — liked songs
-- `/downloads` — local audio files available offline
-- `/local-music` — scan or import audio
-- `/player/:id` — player
-- `/account` — optional account and sync
+Set `EXPO_PUBLIC_API_URL` in Vercel to the Render service URL. Set `CORS_ORIGINS` in Render to the deployed Vercel origin. See [backend/README.md](backend/README.md) for the backend's required database and security variables.
